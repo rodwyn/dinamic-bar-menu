@@ -9,7 +9,9 @@ class DinamicBarMenu {
     this.removeLastChild = this.removeLastChild.bind(this);
     this.renderTrigger = this.renderTrigger.bind(this);
     this.isTriggerRendered = this.isTriggerRendered.bind(this);
-    this.removeMenuChildren = this.removeMenuChildren.bind(this);
+    this.removeMenuItems = this.removeMenuItems.bind(this);
+    this.addSubmenuItems = this.addSubmenuItems.bind(this);
+    this.isItemAdjustable = this.isItemAdjustable.bind(this);
 
     this.children = [];
 
@@ -23,6 +25,10 @@ class DinamicBarMenu {
 
     if (!this.isTriggerRendered()) {
       this.renderTrigger();
+      this.addSubmenuItems();
+    } else {
+      this.removeMenuItems();
+      this.addSubmenuItems();
     }
   }
 
@@ -35,26 +41,21 @@ class DinamicBarMenu {
       return;
     }
 
-    this.children.push(this.element.lastElementChild);
-    this.element.removeChild(this.element.lastElementChild);
+    let linkItemCollection = this.element.querySelectorAll('.link-item');
+    let linkItemIndex = !this.element.lastElementChild.classList.contains('link-trigger')
+      ? linkItemCollection.length - 1
+      : linkItemCollection.length - 2;
+
+    this.children.push(linkItemCollection[linkItemIndex]);
+    this.element.removeChild(linkItemCollection[linkItemIndex]);
     this.removeLastChild();
   }
 
-  removeMenuChildren() {
+  removeMenuItems() {
     this.element.querySelectorAll('.sub-link-item').forEach(child => child.remove());
   }
 
-  renderTrigger() {
-    let trigger = document.createElement('li');
-    let triggerAnchor = document.createElement('a');
-    let submenu = document.createElement('ul');
-
-    trigger.className = 'link-trigger';
-    submenu.className = 'sub-menu hidden';
-    triggerAnchor.innerText = 'more';
-
-    this.removeMenuChildren();
-
+  addSubmenuItems() {
     this.children.map(child => {
       let subLinkItem = document.createElement('li');
       let subLinkItemAnchor = document.createElement('a');
@@ -62,8 +63,18 @@ class DinamicBarMenu {
       subLinkItem.className = 'sub-link-item';
       subLinkItemAnchor.innerText = child.innerText.replace(/(\r\n|\n|\r)/gm, '');
       subLinkItem.appendChild(subLinkItemAnchor);
-      submenu.appendChild(subLinkItem);
+      this.element.querySelector('.sub-menu').appendChild(subLinkItem);
     });
+  }
+
+  renderTrigger() {
+    let trigger = document.createElement('li');
+    let triggerAnchor = document.createElement('a');
+    let submenu = document.createElement('ul');
+
+    trigger.className = 'link-item link-trigger';
+    submenu.className = 'sub-menu hidden';
+    triggerAnchor.innerText = 'more';
 
     trigger.appendChild(triggerAnchor);
     trigger.appendChild(submenu);
@@ -72,32 +83,46 @@ class DinamicBarMenu {
     trigger.addEventListener('click', this.toggleButton);
   }
 
-  isButtonAdjustable() {
-
+  isItemAdjustable() {
+    return this.getItemsWidth() < this.element.offsetWidth;
   }
 
   isParentOverflowed() {
-    return this.element.lastElementChild.offsetWidth > (this.element.offsetWidth - this.getItemsWidth());
+    return (
+      this.element.lastElementChild.offsetWidth > this.element.offsetWidth - this.getItemsWidth()
+    );
   }
 
   toggleButton() {
     let button = this.element.querySelector('.sub-menu');
 
-    button.classList.contains('hidden') ? button.classList.remove('hidden') : button.classList.add('hidden');
+    button.classList.contains('hidden')
+      ? button.classList.remove('hidden')
+      : button.classList.add('hidden');
   }
 
   onResize() {
     this.init();
+    if (this.isItemAdjustable()) {
+      let submenuLastChild = this.element.querySelector('.sub-menu').lastElementChild;
+
+      this.children.pop();
+      submenuLastChild.classList.remove('sub-link-item')
+      submenuLastChild.classList.add('link-item');
+
+      this.element.querySelector('.sub-menu').removeChild(submenuLastChild);
+      this.element.insertBefore(submenuLastChild, this.element.querySelector('.link-trigger'));
+    }
   }
 
   getItemsWidth() {
     return Array.from(this.element.querySelectorAll('.link-item'))
-    .map(item => {
-      let itemStyles = item.currentStyle || window.getComputedStyle(item);
+      .map(item => {
+        let itemStyles = item.currentStyle || window.getComputedStyle(item);
 
-      return parseFloat(item.offsetWidth) + parseFloat(itemStyles.marginRight);
-    })
-    .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+        return parseFloat(item.offsetWidth) + parseFloat(itemStyles.marginRight);
+      })
+      .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
   }
 }
 
