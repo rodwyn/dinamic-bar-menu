@@ -11,7 +11,66 @@
   list-style-type: none;
   padding: 0;
   margin: 0;
+}.dinamic-bar-menu {
+  border: red solid thin;
+  display: inline-block;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
+
+.sub-menu {
+  display: flex;
+  flex-direction: column-reverse;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.link-trigger,
+.link-item {
+  display: flex;
+  float: left;
+  margin: 0 8px 0 0;
+
+  &:last-of-type {
+    margin: 0;
+  }
+
+  & > a {
+    background-color: #333;
+    border: transparent solid 1px;
+    color: #fff;
+    display: inline-block;
+    font: 700 10px/11px 'Roboto';
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+}
+
+.link-trigger {
+  position: relative;
+}
+
+.sub-menu {
+  position: absolute;
+  border: red solid thin;
+  top: 26px;
+  right: 0;
+  width: 256px;
+}
+
+.sub-link-item > a {
+  padding: 4px 8px;
+}
+
+.hidden {
+  display: none;
+}
+
 
 .link-trigger,
 .link-item {
